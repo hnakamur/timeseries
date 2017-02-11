@@ -43,6 +43,11 @@ func run() int {
 		log.Printf("failed to encode points: err=%+v", err)
 		return 1
 	}
+	err = enc.Finish()
+	if err != nil {
+		log.Printf("failed to finish: err=%+v", err)
+		return 1
+	}
 
 	log.Printf("buf hex=%s", hex.EncodeToString(b.Bytes()))
 

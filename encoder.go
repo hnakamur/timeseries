@@ -56,6 +56,10 @@ func (e *Encoder) Encode(points []Point) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (e *Encoder) Finish() error {
 	return e.wr.Flush(bitstream.Zero)
 }
 
