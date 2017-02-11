@@ -64,6 +64,20 @@ func (e *Encoder) Encode(points []Point) error {
 }
 
 func (e *Encoder) Finish() error {
+	// Add finish marker with deltaOfDelta = 0xFFFFFFFF, and value xor = 0
+	err := e.wr.WriteBits(0x0F, 4)
+	if err != nil {
+		return err
+	}
+	err = e.wr.WriteBits(0xFFFFFFFF, 32)
+	if err != nil {
+		return err
+	}
+	err = e.wr.WriteBit(bitstream.Zero)
+	if err != nil {
+		return err
+	}
+
 	return e.wr.Flush(bitstream.Zero)
 }
 
@@ -73,8 +87,8 @@ func (e *Encoder) writeFirst(p Point) error {
 	e.storedDelta = delta
 	e.storedValueBits = math.Float64bits(p.Value)
 
-	log.Printf("writeFirst wrote first delta in %dbits: 0x%x (%d)", NBitsFirstDelta, delta, delta)
-	err := e.wr.WriteBits(uint64(delta), NBitsFirstDelta)
+	log.Printf("writeFirst wrote first delta in %dbits: 0x%x (%d)", nBitsFirstDelta, delta, delta)
+	err := e.wr.WriteBits(uint64(delta), nBitsFirstDelta)
 	if err != nil {
 		return err
 	}
