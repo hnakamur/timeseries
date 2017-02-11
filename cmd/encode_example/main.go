@@ -38,10 +38,12 @@ func run() int {
 			Value:     24.0,
 		},
 	}
-	err = enc.Encode(points)
-	if err != nil {
-		log.Printf("failed to encode points: err=%+v", err)
-		return 1
+	for i, p := range points {
+		err := enc.Encode(p)
+		if err != nil {
+			log.Printf("failed to encode point: i=%d, p=%+v, err=%+v", i, p, err)
+			return 1
+		}
 	}
 	err = enc.Finish()
 	if err != nil {

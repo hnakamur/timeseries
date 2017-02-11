@@ -45,22 +45,12 @@ func (e *Encoder) EncodeHeader(t0 uint32) error {
 	return nil
 }
 
-func (e *Encoder) Encode(points []Point) error {
-	i := 0
-	if e.storedTimestamp == 0 && len(points) > 0 {
-		err := e.writeFirst(points[0])
-		if err != nil {
-			return err
-		}
-		i++
+func (e *Encoder) Encode(p Point) error {
+	if e.storedTimestamp == 0 {
+		return e.writeFirst(p)
+	} else {
+		return e.writePoint(p)
 	}
-	for ; i < len(points); i++ {
-		err := e.writePoint(points[i])
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (e *Encoder) Finish() error {
