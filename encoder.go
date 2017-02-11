@@ -54,18 +54,30 @@ func (e *Encoder) Encode(p Point) error {
 }
 
 func (e *Encoder) Finish() error {
-	// Add finish marker with deltaOfDelta = 0xFFFFFFFF, and value xor = 0
-	err := e.wr.WriteBits(0x0F, 4)
-	if err != nil {
-		return err
-	}
-	err = e.wr.WriteBits(0xFFFFFFFF, 32)
-	if err != nil {
-		return err
-	}
-	err = e.wr.WriteBit(bitstream.Zero)
-	if err != nil {
-		return err
+	if e.storedTimestamp == 0 {
+		// Add finish marker with delta = 0x3FFF (nBitsFirstDelta = 14 bits), and first value = 0
+		err := e.wr.WriteBits(1<<nBitsFirstDelta-1, nBitsFirstDelta)
+		if err != nil {
+			return err
+		}
+		err = e.wr.WriteBits(0, 64)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Add finish marker with deltaOfDelta = 0xFFFFFFFF, and value xor = 0
+		err := e.wr.WriteBits(0x0F, 4)
+		if err != nil {
+			return err
+		}
+		err = e.wr.WriteBits(0xFFFFFFFF, 32)
+		if err != nil {
+			return err
+		}
+		err = e.wr.WriteBit(bitstream.Zero)
+		if err != nil {
+			return err
+		}
 	}
 
 	return e.wr.Flush(bitstream.Zero)
