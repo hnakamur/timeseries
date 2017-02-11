@@ -45,7 +45,7 @@ func (e *Encoder) EncodeHeader(t0 uint32) error {
 	return nil
 }
 
-func (e *Encoder) Encode(p Point) error {
+func (e *Encoder) EncodePoint(p Point) error {
 	if e.storedTimestamp == 0 {
 		return e.writeFirst(p)
 	} else {
