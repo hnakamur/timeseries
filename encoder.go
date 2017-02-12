@@ -2,7 +2,6 @@ package timeseries
 
 import (
 	"io"
-	"log"
 	"math"
 
 	"github.com/dgryski/go-bitstream"
@@ -36,7 +35,6 @@ func NewEncoder(w io.Writer) *Encoder {
 }
 
 func (e *Encoder) EncodeHeader(t0 uint32) error {
-	log.Printf("EncodeHeader wrote t0 in 32bits: 0x%x", t0)
 	err := e.wr.WriteBits(uint64(t0), 32)
 	if err != nil {
 		return err
@@ -89,13 +87,11 @@ func (e *Encoder) writeFirst(p Point) error {
 	e.storedDelta = delta
 	e.storedValueBits = math.Float64bits(p.Value)
 
-	log.Printf("writeFirst wrote first delta in %dbits: 0x%x (%d)", nBitsFirstDelta, delta, delta)
 	err := e.wr.WriteBits(uint64(delta), nBitsFirstDelta)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("writeFirst wrote first value in 64bits: 0x%x", e.storedValueBits)
 	return e.wr.WriteBits(e.storedValueBits, 64)
 }
 
@@ -114,16 +110,13 @@ func (e *Encoder) writeTimestampDeltaDelta(timestamp uint32) error {
 	e.storedTimestamp = timestamp
 	e.storedDelta = delta
 
-	log.Printf("writeTimestampDeltaDelta deltaDelta 0x%x (%d)", uint64(deltaDelta), deltaDelta)
 	switch {
 	case deltaDelta == 0:
-		log.Printf("writeTimestampDeltaDelta wrote 0 in 1 bit")
 		err := e.wr.WriteBit(bitstream.Zero)
 		if err != nil {
 			return err
 		}
 	case -63 <= deltaDelta && deltaDelta <= 64:
-		log.Printf("writeTimestampDeltaDelta wrote 0b10 in 2 bits")
 		err := e.wr.WriteBits(0x02, 2) // write 2 bits header '10'
 		if err != nil {
 			return err
@@ -171,26 +164,21 @@ func writeInt64Bits(w *bitstream.BitWriter, i int64, nbits uint) error {
 	} else {
 		u = uint64(1<<nbits + i)
 	}
-	log.Printf("writeInt64Bits i=%d, u=%d (0x%x)", i, u, u)
 	return w.WriteBits(u, int(nbits))
 }
 
 func (e *Encoder) writeValueXor(value float64) error {
 	valueBits := math.Float64bits(value)
-	log.Printf("writeValueXor value=%g, valueBits=%x", value, valueBits)
 	xor := e.storedValueBits ^ valueBits
 	e.storedValueBits = valueBits
 
 	if xor == 0 {
-		log.Printf("writeValueXor wrote 1bit 0 for zero value")
 		return e.wr.WriteBit(bitstream.Zero)
 	}
 
 	leadingZeros := numOfLeadingZeros(xor)
 	trailingZeros := numOfTrailingZeros(xor)
-	log.Printf("writeValueXor value=%g, xor=0x%x (%d), leadingZeros=%d, trailingZeros=%d", value, xor, xor, leadingZeros, trailingZeros)
 
-	log.Printf("writeValueXor wrote 1bit 1 for non-zero value")
 	err := e.wr.WriteBit(bitstream.One)
 	if err != nil {
 		return err
@@ -199,7 +187,6 @@ func (e *Encoder) writeValueXor(value float64) error {
 	var significantBits uint8
 	if leadingZeros >= e.storedLeadingZeros && trailingZeros >= e.storedTrailingZeros {
 		// write existing leading
-		log.Printf("writeValueXor wrote 1bit 0 for control bit")
 		err := e.wr.WriteBit(bitstream.Zero)
 		if err != nil {
 			return err
@@ -211,26 +198,22 @@ func (e *Encoder) writeValueXor(value float64) error {
 		e.storedTrailingZeros = trailingZeros
 
 		// write new leading
-		log.Printf("writeValueXor wrote 1bit 1 for control bit")
 		err := e.wr.WriteBit(bitstream.One)
 		if err != nil {
 			return err
 		}
 
-		log.Printf("writeValueXor write new leadingZeros %d (0x%x) in 5 bits", leadingZeros, leadingZeros)
 		err = e.wr.WriteBits(uint64(leadingZeros), 5)
 		if err != nil {
 			return err
 		}
 
 		significantBits = 64 - leadingZeros - trailingZeros
-		log.Printf("writeValueXor write new significantBits %d (0x%x) in 6 bits", significantBits, significantBits)
 		err = e.wr.WriteBits(uint64(significantBits), 6)
 		if err != nil {
 			return err
 		}
 	}
 
-	log.Printf("writeValueXor write shifted xor %d (0x%x) in %d bits", xor>>e.storedTrailingZeros, xor>>e.storedTrailingZeros, significantBits)
 	return e.wr.WriteBits(xor>>e.storedTrailingZeros, int(significantBits))
 }
