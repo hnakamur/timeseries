@@ -177,6 +177,7 @@ func writeInt64Bits(w *bitstream.BitWriter, i int64, nbits uint) error {
 
 func (e *Encoder) writeValueXor(value float64) error {
 	valueBits := math.Float64bits(value)
+	log.Printf("writeValueXor value=%g, valueBits=%x", value, valueBits)
 	xor := e.storedValueBits ^ valueBits
 	e.storedValueBits = valueBits
 
@@ -187,7 +188,7 @@ func (e *Encoder) writeValueXor(value float64) error {
 
 	leadingZeros := numOfLeadingZeros(xor)
 	trailingZeros := numOfTrailingZeros(xor)
-	log.Printf("writeValueXor xor=0x%x (%d), leadingZeros=%d, trailingZeros=%d", xor, xor, leadingZeros, trailingZeros)
+	log.Printf("writeValueXor value=%g, xor=0x%x (%d), leadingZeros=%d, trailingZeros=%d", value, xor, xor, leadingZeros, trailingZeros)
 
 	log.Printf("writeValueXor wrote 1bit 1 for non-zero value")
 	err := e.wr.WriteBit(bitstream.One)
