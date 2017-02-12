@@ -7,7 +7,7 @@ import (
 	"io"
 	"time"
 
-	"bitbucket.org/hnakamur/timeseries"
+	"github.com/hnakamur/timeseries"
 )
 
 func ExampleMarshal() {

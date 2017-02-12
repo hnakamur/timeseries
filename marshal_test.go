@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"bitbucket.org/hnakamur/timeseries"
+	"github.com/hnakamur/timeseries"
 )
 
 func TestMarshal(t *testing.T) {
