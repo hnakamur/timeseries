@@ -8,6 +8,7 @@ import (
 	"github.com/dgryski/go-bitstream"
 )
 
+// Decoder decodes bytes data to a block timestamp and data points.
 type Decoder struct {
 	rd              *bitstream.BitReader
 	headerTimestamp uint32
@@ -19,12 +20,14 @@ type Decoder struct {
 	storedValueBits     uint64
 }
 
+// NewDecoder creates a decoder.
 func NewDecoder(r io.Reader) *Decoder {
 	return &Decoder{
 		rd: bitstream.NewReader(r),
 	}
 }
 
+// DecodeHeader decodes header to the block timestamp.
 func (d *Decoder) DecodeHeader() (t0 uint32, err error) {
 	timestamp, err := d.rd.ReadBits(32)
 	if err != nil {
@@ -34,12 +37,13 @@ func (d *Decoder) DecodeHeader() (t0 uint32, err error) {
 	return d.headerTimestamp, nil
 }
 
+// DecodePoint decodes a data point. It returns io.EOF when it see
+// the finish marker or it got EOF from the underlying reader.
 func (d *Decoder) DecodePoint() (p Point, err error) {
 	if d.storedTimestamp == 0 {
 		return d.readFirst()
-	} else {
-		return d.readPoint()
 	}
+	return d.readPoint()
 }
 
 func (d *Decoder) readFirst() (p Point, err error) {

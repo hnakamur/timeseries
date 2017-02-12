@@ -27,6 +27,7 @@ type Encoder struct {
 	storedValueBits     uint64
 }
 
+// NewEncoder creates a new encoder.
 func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{
 		wr:                 bitstream.NewWriter(w),
@@ -34,6 +35,7 @@ func NewEncoder(w io.Writer) *Encoder {
 	}
 }
 
+// EncodeHeader encodes the block timestamp to the header bits.
 func (e *Encoder) EncodeHeader(t0 uint32) error {
 	err := e.wr.WriteBits(uint64(t0), 32)
 	if err != nil {
@@ -43,14 +45,15 @@ func (e *Encoder) EncodeHeader(t0 uint32) error {
 	return nil
 }
 
+// EncodePoint encodes a data point.
 func (e *Encoder) EncodePoint(p Point) error {
 	if e.storedTimestamp == 0 {
 		return e.writeFirst(p)
-	} else {
-		return e.writePoint(p)
 	}
+	return e.writePoint(p)
 }
 
+// Finish encodes the finish marker and flush bits with zero bits padding for byte-align.
 func (e *Encoder) Finish() error {
 	if e.storedTimestamp == 0 {
 		// Add finish marker with delta = 0x3FFF (nBitsFirstDelta = 14 bits), and first value = 0
