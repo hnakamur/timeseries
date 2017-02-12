@@ -7,10 +7,6 @@ import (
 	"github.com/dgryski/go-bitstream"
 )
 
-// This code is based on
-// https://github.com/burmanm/gorilla-tsc/blob/fb984aefffb63c7b4d48c526f69db53813df2f28/src/main/java/fi/iki/yak/ts/compression/gorilla/Compressor.java
-
-// http://www.vldb.org/pvldb/vol8/p1816-teller.pdf
 // The first time stamp delta is sized at 14 bits, because that size is enough to span a bit more than 4 hours (16,384 seconds), If one chose a Gorilla block larger than 4 hours, this size would increase.
 const nBitsFirstDelta = 14
 
